@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planonit - Smart Study Planner</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Planonit</h1>
+            <p class="tagline">Your AI-Powered Study Planning Assistant</p>
+        </header>
+
+        <main>
+            <!-- Study Plan Generator Section -->
+            <section class="card">
+                <h2>📝 Generate Study Plan</h2>
+                <p class="section-description">Enter your syllabus below and let AI create a personalized study plan for you.</p>
+                
+                <div class="form-group">
+                    <label for="syllabusInput">Syllabus:</label>
+                    <textarea 
+                        id="syllabusInput" 
+                        placeholder="Enter your syllabus here... (e.g., Topics: Calculus, Linear Algebra, Probability, Statistics)"
+                        rows="6"
+                    ></textarea>
+                </div>
+
+                <button id="generateBtn" class="btn btn-primary">
+                    <span class="btn-text">Generate Study Plan</span>
+                    <span class="spinner" style="display: none;">⏳</span>
+                </button>
+
+                <div id="studyPlanResult" class="result-box" style="display: none;">
+                    <h3>Your Study Plan:</h3>
+                    <div id="studyPlanContent"></div>
+                </div>
+            </section>
+
+            <!-- PDF Analysis Section -->
+            <section class="card">
+                <h2>📄 Analyze Previous Year Papers</h2>
+                <p class="section-description">Upload a PDF of previous year question papers to get AI-powered insights and topic analysis.</p>
+                
+                <div class="form-group">
+                    <label for="pdfInput">Upload PDF:</label>
+                    <input 
+                        type="file" 
+                        id="pdfInput" 
+                        accept=".pdf"
+                        class="file-input"
+                    >
+                    <div id="fileName" class="file-name"></div>
+                </div>
+
+                <button id="analyzeBtn" class="btn btn-secondary">
+                    <span class="btn-text">Analyze PDF</span>
+                    <span class="spinner" style="display: none;">⏳</span>
+                </button>
+
+                <div id="pdfAnalysisResult" class="result-box" style="display: none;">
+                    <h3>PDF Analysis:</h3>
+                    <div id="pdfAnalysisContent"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by ChatGPT | Built with ❤️ for students</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
