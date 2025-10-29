@@ -1,4 +1,4 @@
-// API base URL - change this if deploying to a different server
+// API base URL - automatically adapts to the environment
 const API_BASE_URL = window.location.origin;
 
 // DOM Elements

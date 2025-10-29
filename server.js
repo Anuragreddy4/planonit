@@ -10,6 +10,18 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Constants
+const MAX_PDF_TEXT_FOR_ANALYSIS = 3000;
+const TEXT_PREVIEW_LENGTH = 500;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+// Validate OpenAI API Key
+if (!process.env.OPENAI_API_KEY) {
+  console.error('ERROR: OPENAI_API_KEY is not set in environment variables');
+  console.error('Please create a .env file and add your OpenAI API key');
+  process.exit(1);
+}
+
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -38,6 +50,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
+  limits: {
+    fileSize: MAX_FILE_SIZE
+  },
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
       cb(null, true);
@@ -113,7 +128,7 @@ app.post('/api/analyze-pdf', upload.single('pdf'), async (req, res) => {
         },
         {
           role: "user",
-          content: `Analyze this previous year question paper and provide insights:\n\n${pdfText.substring(0, 3000)}\n\nPlease provide:\n1. Key topics covered\n2. Frequently asked questions\n3. Important concepts to focus on\n4. Pattern analysis and study recommendations`
+          content: `Analyze this previous year question paper and provide insights:\n\n${pdfText.substring(0, MAX_PDF_TEXT_FOR_ANALYSIS)}\n\nPlease provide:\n1. Key topics covered\n2. Frequently asked questions\n3. Important concepts to focus on\n4. Pattern analysis and study recommendations`
         }
       ],
       temperature: 0.7,
@@ -124,7 +139,7 @@ app.post('/api/analyze-pdf', upload.single('pdf'), async (req, res) => {
 
     res.json({ 
       analysis,
-      extractedText: pdfText.substring(0, 500) + '...' // Preview of extracted text
+      extractedText: pdfText.substring(0, TEXT_PREVIEW_LENGTH) + '...' // Preview of extracted text
     });
   } catch (error) {
     console.error('Error analyzing PDF:', error);
