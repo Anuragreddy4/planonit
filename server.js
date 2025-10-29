@@ -5,6 +5,7 @@ const OpenAI = require('openai');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
@@ -31,6 +32,18 @@ const openai = new OpenAI({
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+// Rate limiting to prevent DoS attacks
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // Limit each IP to 50 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -104,15 +117,22 @@ app.post('/api/analyze-pdf', upload.single('pdf'), async (req, res) => {
       return res.status(400).json({ error: 'PDF file is required' });
     }
 
+    // Validate file path is within uploads directory to prevent path traversal
+    const filePath = path.resolve(req.file.path);
+    const uploadsPath = path.resolve(uploadsDir);
+    if (!filePath.startsWith(uploadsPath)) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
     // Read PDF file
-    const dataBuffer = fs.readFileSync(req.file.path);
+    const dataBuffer = fs.readFileSync(filePath);
     
     // Parse PDF
     const pdfData = await pdfParse(dataBuffer);
     const pdfText = pdfData.text;
 
     // Delete uploaded file after processing
-    fs.unlinkSync(req.file.path);
+    fs.unlinkSync(filePath);
 
     if (!pdfText || pdfText.trim() === '') {
       return res.status(400).json({ error: 'Could not extract text from PDF' });
@@ -145,8 +165,12 @@ app.post('/api/analyze-pdf', upload.single('pdf'), async (req, res) => {
     console.error('Error analyzing PDF:', error);
     
     // Clean up file if it exists
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (req.file && req.file.path) {
+      const filePath = path.resolve(req.file.path);
+      const uploadsPath = path.resolve(uploadsDir);
+      if (filePath.startsWith(uploadsPath) && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
     
     res.status(500).json({ error: 'Failed to analyze PDF. Please try again.' });
